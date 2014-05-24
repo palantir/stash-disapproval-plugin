@@ -1,0 +1,62 @@
+{namespace plugin.page.disapproval}
+
+/**
+ * @param repository
+ * @param isStrict
+ **/
+{template .repositoryConfigurationPanel}
+<html>
+<head>
+    <meta name="decorator" content="stash.repository.settings">
+    <meta name="projectKey" content="{$repository.project.key}">
+    <meta name="repositorySlug" content="{$repository.slug}">
+    <meta name="activeTab" content="repository-settings-git-ops-panel">
+    <title>{{stash_i18n('stash.web.repository.git-ops.title', 'Disapproval settings for {0} / {1}', $repository.project.name, $repository.name)}}</title>
+</head>
+<body>
+{call aui.group.group}
+    {param content}
+        {call aui.group.item}
+            {param content}
+                <h2>{stash_i18n('stash.web.repository.stashbot.heading', 'Stashbot Settings')}</h2>
+            {/param}
+        {/call}
+    {/param}
+{/call}
+{call aui.group.group}
+  {param content}
+    {call aui.form.form}
+      {param action: '' /}
+      {param content}
+        {call aui.form.checkboxField}
+          {param legendContent: stash_i18n('stash.web.stash.enable-strict-mode.button.description', 'Enable strict disapproval mode') /}
+          {param fields: [[
+            'id': 'strictModeEnabled',
+            'labelText': stash_i18n('stash.web.stash.enable-strict-mode.button.label', 'Strict Mode'),
+            'isChecked': $isStrict
+            ]] /}
+        {/call}
+      {/param}
+    {/call}
+    <br />
+    {call aui.form.buttons}
+      {param content}
+        {call aui.form.submit}
+          {param id: 'submit' /}
+          {param text: stash_i18n('stash.web.stash.disapproval.submit', 'Save') /}
+          {param type: 'submit' /}
+        {/call}
+      {/param}
+    {/call}
+  {/param}
+{/call}
+<div>
+<h3>Strict Mode versus Advisory Mode</h3>
+<p>
+In Strict Mode, a pull request cannot be merged as long as it has been disapproved.  In Advisory mode, a pull request can still be merged and the disapproval is just advisory.
+</p>
+</div>
+</body>
+</html>
+{/template}
+
