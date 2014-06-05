@@ -62,6 +62,7 @@
     <component-import key="pullRequestService" interface="com.atlassian.stash.pull.PullRequestService"/>
     <component-import key="repositoryService" interface="com.atlassian.stash.repository.RepositoryService"/>
     <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
+    <component-import key="userManager" interface="com.atlassian.sal.api.user.UserManager" />
 
     <!-- TODO: remove these? -->
     <component-import key="repositoryHookService" interface="com.atlassian.stash.hook.repository.RepositoryHookService"/>
@@ -94,10 +95,10 @@
         <param name="stashButtonPrimary" value="true"/>
         <label key="plugin.page.pr.disapproval.button.label">Disapprove</label>
         <tooltip key="plugin.page.pr.disapproval.button.tooltip">Disapprove this Pull Request</tooltip>
+<!--
         <link>/plugins/servlet/disapproval/repo-admin/${repository.project.key}/${repository.slug}</link>
-        <!--
-        <styleClass>edit-pull-request</styleClass>
-        -->
+-->
+        <styleClass>disapprove-pull-request</styleClass>
     </web-item>
 
     <web-item key="pull-request-undisapproval-button" name="Pull Request Un-Disapproval Button" weight="20" section="stash.pull-request.toolbar.actions">
@@ -109,18 +110,34 @@
             <condition class="com.palantir.stash.disapprove.conditions.IsPullRequestDisapproved"/>
         </conditions>
         <param name="stashButtonPrimary" value="true"/>
-        <label key="plugin.page.pr.disapproval.button.label">Un-Disapprove</label>
+        <label key="plugin.page.pr.disapproval.button.label">Remove Disapproval</label>
         <tooltip key="plugin.page.pr.disapproval.button.tooltip">Remove Disapproval for this Pull Request</tooltip>
+<!--
         <link>/plugins/servlet/disapproval/repo-admin/${repository.project.key}/${repository.slug}</link>
-        <!--
-        <styleClass>edit-pull-request</styleClass>
-        -->
+-->
+        <styleClass>undisapprove-pull-request</styleClass>
     </web-item>
-    <servlet key="repositoryConfigurationAdmin" name="Repository Administration Servlet" class="com.palantir.stash.disapprove.config.DisapproveConfigurationServlet">
+
+
+    <servlet key="repositoryConfigurationAdmin" name="Disapproval Repository Administration Servlet" class="com.palantir.stash.disapprove.config.DisapproveConfigurationServlet">
         <url-pattern>/disapproval/repo-admin/*</url-pattern>
     </servlet>
 
-    <servlet key="Disapproval Servlet" name="Disapproval Servlet" class="com.palantir.stash.disapprove.servlet.DisapprovalServlet">
-        <url-pattern>/disapproval/disapprove/*</url-pattern>
+	<!--  TODO: replace with rest resource? -->
+    <servlet key="Disapproval Servlet" name="Pull Request Disapproval Servlet" class="com.palantir.stash.disapprove.servlet.DisapprovalServlet">
+        <url-pattern>/disapproval/disapprove*</url-pattern>
     </servlet>
+    
+    <rest name="Disapproval Resource" key="disapproval-resource" path="/disapproval" version="1.0">
+    	<description key="disapproval-resource.key">Disapproval Resource Plugin</description>
+    </rest>
+
+    <web-resource key="disapprovalButtonResources" name="Disapproval Button Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <dependency>stash.web.resources:jquery</dependency>
+        <resource type="download" name="disapprove.js" location="/static/disapprove.js"/>
+        <context>stash.page.pullRequest.view</context>
+        <context>disapprove</context>
+    </web-resource>
+
 </atlassian-plugin>

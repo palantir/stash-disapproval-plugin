@@ -54,7 +54,7 @@ public class PullRequestDisapprovalMergeCheckTest {
         Mockito.when(pm.getDisapprovalConfiguration(repo)).thenReturn(dc);
         Mockito.when(dc.getDisapprovalMode()).thenReturn(DisapprovalMode.STRICT_MODE);
 
-        prdmc = new PullRequestDisapprovalMergeCheck(null, pm, plf);
+        prdmc = new PullRequestDisapprovalMergeCheck(pm, plf);
     }
 
     @Test

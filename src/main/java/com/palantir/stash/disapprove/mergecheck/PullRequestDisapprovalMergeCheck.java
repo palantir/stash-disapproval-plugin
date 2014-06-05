@@ -17,11 +17,8 @@ import java.sql.SQLException;
 
 import javax.annotation.Nonnull;
 
-import net.java.ao.DBParam;
-
 import org.slf4j.Logger;
 
-import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.pull.MergeRequest;
@@ -44,33 +41,16 @@ public class PullRequestDisapprovalMergeCheck implements MergeRequestCheck {
     private final PersistenceManager cpm;
     private final Logger log;
 
-    private final ActiveObjects ao;
-
-    public PullRequestDisapprovalMergeCheck(
-        ActiveObjects ao,
-        PersistenceManager cpm, PluginLoggerFactory lf) {
+    public PullRequestDisapprovalMergeCheck(PersistenceManager cpm, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.log = lf.getLoggerForThis(this);
-        this.ao = ao;
-    }
-
-    public void notCheck(@Nonnull MergeRequest mr) {
-        PullRequest pr = mr.getPullRequest();
-        Repository repo = pr.getToRef().getRepository();
-
-        DisapprovalConfiguration dpc;
-        try {
-            dpc = ao.create(DisapprovalConfiguration.class, new DBParam("REPO_ID", repo.getId()));
-        } catch (Exception e) {
-            log.error("Undeclared exception: ", e);
-            return;
-        }
     }
 
     @Override
     public void check(@Nonnull MergeRequest mr) {
         PullRequest pr = mr.getPullRequest();
         Repository repo = pr.getToRef().getRepository();
+        log.debug("Checking disapproval for repo " + repo.getName() + " pull request " + pr.getTitle());
 
         DisapprovalConfiguration dpc;
         try {
@@ -82,6 +62,7 @@ public class PullRequestDisapprovalMergeCheck implements MergeRequestCheck {
 
         if (dpc.getDisapprovalMode().equals(DisapprovalMode.ADVISORY_MODE)) {
             // if in advisory mode, don't actually prevent merges
+            log.debug("Disapproval is in advisory mode for this repo");
             return;
         }
 
@@ -89,13 +70,18 @@ public class PullRequestDisapprovalMergeCheck implements MergeRequestCheck {
         try {
             prd = cpm.getPullRequestDisapproval(pr);
         } catch (SQLException e) {
-            log.error("Unable to get disapproval configuration - ignoring");
+            log.error("Unable to get disapproval configuration, disapproving to be safe");
+            mr.veto("Unable to determine disapproval information",
+                "Unable to determine disapproval information, disapproving pull request: " + e.getMessage());
             return;
         }
 
         if (prd.isDisapproved()) {
+            log.debug("PR Disapproved");
             mr.veto("This Pull Request is Disapproved",
                 "Ask the disapprover '" + prd.getDisapprovedBy() + "' to undisapprove the pull request");
+        } else {
+            log.debug("PR Not Disapproved");
         }
     }
 }

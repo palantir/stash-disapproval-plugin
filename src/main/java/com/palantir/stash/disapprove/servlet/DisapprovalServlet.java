@@ -23,20 +23,18 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONObject;
 import org.slf4j.Logger;
 
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.stash.exception.AuthorisationException;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
 import com.atlassian.stash.request.RequestManager;
-import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.PermissionValidationService;
 import com.atlassian.stash.user.StashAuthenticationContext;
+import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.disapprove.logger.PluginLoggerFactory;
-import com.palantir.stash.disapprove.persistence.DisapprovalConfiguration;
 import com.palantir.stash.disapprove.persistence.PersistenceManager;
 import com.palantir.stash.disapprove.persistence.PullRequestDisapproval;
 
@@ -46,61 +44,138 @@ public class DisapprovalServlet extends HttpServlet {
 
     private final LoginUriProvider lup;
     private final PermissionValidationService permissionValidationService;
-    private final RepositoryService repositoryService;
     private final PullRequestService pullRequestService;
     private final PersistenceManager pm;
     private final RequestManager rm;
     private final Logger log;
 
     public DisapprovalServlet(LoginUriProvider lup, PermissionValidationService permissionValidationService,
-        RepositoryService repositoryService, PullRequestService pullRequestService, PersistenceManager pm,
-        RequestManager rm, PluginLoggerFactory lf) {
+        PullRequestService pullRequestService, PersistenceManager pm, RequestManager rm, PluginLoggerFactory lf) {
         this.permissionValidationService = permissionValidationService;
         this.log = lf.getLoggerForThis(this);
         this.lup = lup;
         this.pm = pm;
-        this.repositoryService = repositoryService;
         this.pullRequestService = pullRequestService;
         this.rm = rm;
     }
 
-    public void doOldGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        PullRequest pr = pullRequestService.getById(1, 1);
-        Repository repo = pr.getToRef().getRepository();
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-        try {
-            DisapprovalConfiguration dc = pm.getDisapprovalConfiguration(repo);
-        } catch (SQLException e) {
-            e.printStackTrace();
+        final String user = authenticateUser(req, res);
+        if (user == null) {
+            // not logged in, redirect
+            res.sendRedirect(lup.getLoginUri(getUri(req)).toASCIIString());
             return;
         }
 
+        final String REQ_PARAMS = "repoId(int), prId(long), disapproved(true|false)";
+        final Integer repoId;
+        final Long prId;
         try {
-            PullRequestDisapproval prd = pm.getPullRequestDisapproval(pr);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return;
+            repoId = Integer.valueOf(req.getParameter("repoId"));
+            prId = Long.valueOf(req.getParameter("prId"));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("The required paramaters are: " + REQ_PARAMS, e);
+        }
+        final PullRequest pr = pullRequestService.getById(repoId, prId);
+
+        if (pr == null) {
+            throw new IllegalArgumentException("No PR found for repo id " + repoId.toString() + " pr id "
+                + prId.toString());
         }
 
+        PullRequestDisapproval prd;
+        try {
+            prd = pm.getPullRequestDisapproval(pr);
+        } catch (SQLException e) {
+            throw new ServletException(e);
+        }
+
+        boolean oldDisapproval = prd.isDisapproved();
+        boolean disapproval;
+
+        String disapproved = req.getParameter("disapproved");
+        if (disapproved != null && disapproved.equalsIgnoreCase("true")) {
+            disapproval = true;
+        } else if (disapproved != null && disapproved.equalsIgnoreCase("false")) {
+            disapproval = false;
+        } else {
+            throw new IllegalArgumentException("The required parameters are: " + REQ_PARAMS);
+        }
+        try {
+            processDisapprovalChange(user, prd, oldDisapproval, disapproval);
+            Writer w = res.getWriter();
+            //res.setContentType("text/html;charset=UTF-8");
+            res.setContentType("application/json;charset=UTF-8");
+            w.append(new JSONObject(ImmutableMap.of("disapproval", prd.isDisapproved(), "disapprovedBy",
+                prd.getDisapprovedBy())).toString());
+        } finally {
+            res.getWriter().close();
+        }
     }
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-        // Authenticate user
-        try {
-            permissionValidationService.validateAuthenticated();
-        } catch (AuthorisationException notLoggedInException) {
-            log.debug("User not logged in, redirecting to login page");
+        final String user = authenticateUser(req, res);
+        if (user == null) {
             // not logged in, redirect
             res.sendRedirect(lup.getLoginUri(getUri(req)).toASCIIString());
             return;
         }
-        StashAuthenticationContext ac = rm.getRequestContext().getAuthenticationContext();
-        final String user = ac.getCurrentUser().getName();
 
-        //final String user = req.getRemoteUser();
-        log.debug("User {} logged in", user);
+        final String URL_FORMAT = "BASE_URL/REPO_ID";
+        final String pathInfo = req.getPathInfo();
+        final String[] parts = pathInfo.split("/");
+
+        log.debug("PATH INFO: " + pathInfo);
+        log.debug("PATH COUNT: " + Integer.toString(parts.length));
+        if (parts.length != 5) {
+            throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT);
+        }
+
+        final Integer repoId;
+        final Long prId;
+        try {
+            repoId = Integer.valueOf(parts[3]);
+            prId = Long.valueOf(parts[4]);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT, e);
+        }
+
+        final PullRequest pr = pullRequestService.getById(repoId, prId);
+        if (pr == null) {
+            throw new IllegalArgumentException("No PR found for repo id " + repoId.toString() + " pr id "
+                + prId.toString());
+        }
+
+        PullRequestDisapproval prd;
+        try {
+            prd = pm.getPullRequestDisapproval(pr);
+        } catch (SQLException e) {
+            throw new ServletException(e);
+        }
+
+        try {
+            Writer w = res.getWriter();
+            //res.setContentType("text/html;charset=UTF-8");
+            res.setContentType("application/json;charset=UTF-8");
+            w.append(new JSONObject(ImmutableMap.of("disapproval", prd.isDisapproved(), "disapprovedBy",
+                prd.getDisapprovedBy())).toString());
+        } finally {
+            res.getWriter().close();
+        }
+    }
+
+    public void oldDoGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+        final String user = authenticateUser(req, res);
+        if (user == null) {
+            // not logged in, redirect
+            res.sendRedirect(lup.getLoginUri(getUri(req)).toASCIIString());
+            return;
+        }
 
         final String URL_FORMAT = "BASE_URL/REPO_ID/PR_ID/[disapproved: true|false]";
         final String pathInfo = req.getPathInfo();
@@ -120,7 +195,7 @@ public class DisapprovalServlet extends HttpServlet {
             throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT, e);
         }
 
-        PullRequest pr = pullRequestService.getById(repoId, prId);
+        final PullRequest pr = pullRequestService.getById(repoId, prId);
         if (pr == null) {
             throw new IllegalArgumentException("No PR found for repo id " + repoId.toString() + " pr id "
                 + prId.toString());
@@ -134,8 +209,8 @@ public class DisapprovalServlet extends HttpServlet {
         }
 
         boolean oldDisapproval = prd.isDisapproved();
-
         boolean disapproval;
+
         if (parts[3].equalsIgnoreCase("true")) {
             disapproval = true;
         } else if (parts[3].equalsIgnoreCase("false")) {
@@ -144,39 +219,60 @@ public class DisapprovalServlet extends HttpServlet {
             throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT);
         }
 
-        res.setContentType("text/html;charset=UTF-8");
-        Writer w = res.getWriter();
+        try {
+            processDisapprovalChange(user, prd, oldDisapproval, disapproval);
+            Writer w = res.getWriter();
+            //res.setContentType("text/html;charset=UTF-8");
+            res.setContentType("application/json;charset=UTF-8");
+            w.append(new JSONObject(ImmutableMap.of("disapproval", prd.isDisapproved(), "disapprovedBy",
+                prd.getDisapprovedBy())).toString());
+        } finally {
+            res.getWriter().close();
+        }
+    }
+
+    private String authenticateUser(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        try {
+            permissionValidationService.validateAuthenticated();
+        } catch (AuthorisationException notLoggedInException) {
+            log.debug("User not logged in", notLoggedInException);
+            return null;
+        }
+        StashAuthenticationContext ac = rm.getRequestContext().getAuthenticationContext();
+        final String user = ac.getCurrentUser().getName();
+
+        log.debug("User {} logged in", user);
+        return user;
+    }
+
+    private void processDisapprovalChange(final String user, PullRequestDisapproval prd,
+        boolean oldDisapproval, boolean disapproval) throws IOException {
 
         if (disapproval) {
             // we are setting disapproval
             if (oldDisapproval) {
                 // disapproval already set, do nothing
-                w.append("PR already disapproved by " + prd.getDisapprovedBy());
-                w.close();
+                log.warn("PR already disapproved by " + prd.getDisapprovedBy());
                 return;
             }
 
             prd.setDisapprovedBy(user);
             prd.setDisapproved(true);
             prd.save();
-            w.append("PR has been disapproved by " + user);
-            w.close();
+            log.info("PR has been disapproved by " + user);
             return;
         }
 
         // unsetting disapproval
         if (!oldDisapproval) {
-            w.append("PR is not disapproved");
-            w.close();
+            log.warn("PR is not disapproved");
             return;
         }
 
         prd.setDisapproved(false);
         prd.setDisapprovedBy("None");
         prd.save();
-        w.append("PR is no longer disapproved");
-        w.close();
-        return;
+        log.info("PR is no longer disapproved");
 
         // TODO: let admins undisapprove other people's disapproval?
         /*
@@ -190,27 +286,6 @@ public class DisapprovalServlet extends HttpServlet {
         */
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        try {
-            permissionValidationService.validateForGlobal(Permission.SYS_ADMIN);
-        } catch (AuthorisationException e) {
-            // Skip form processing
-            doGet(req, res);
-            return;
-        }
-
-        //String name = req.getParameter("name");
-
-        try {
-            //configurationPersistanceManager.setJenkinsServerConfigurationFromRequest(req);
-            //pluginUserManager.createStashbotUser(configurationPersistanceManager.getJenkinsServerConfiguration(name));
-        } catch (Exception e) {
-            res.sendRedirect(req.getRequestURL().toString() + "?error=" + e.getMessage());
-        }
-        doGet(req, res);
-    }
-
     private URI getUri(HttpServletRequest req) {
         StringBuffer builder = req.getRequestURL();
         if (req.getQueryString() != null) {
@@ -218,18 +293,5 @@ public class DisapprovalServlet extends HttpServlet {
             builder.append(req.getQueryString());
         }
         return URI.create(builder.toString());
-    }
-
-    private Repository getRepository(HttpServletRequest req) {
-        String pathInfo = req.getPathInfo();
-        if (pathInfo == null) {
-            return null;
-        }
-        pathInfo = pathInfo.startsWith("/") ? pathInfo.substring(0) : pathInfo;
-        String[] pathParts = pathInfo.split("/");
-        if (pathParts.length != 3) {
-            return null;
-        }
-        return repositoryService.getBySlug(pathParts[1], pathParts[2]);
     }
 }
