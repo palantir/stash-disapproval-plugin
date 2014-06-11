@@ -27,6 +27,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 
 import com.atlassian.sal.api.auth.LoginUriProvider;
+import com.atlassian.stash.comment.Comment;
 import com.atlassian.stash.exception.AuthorisationException;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
@@ -201,6 +202,8 @@ public class DisapprovalServlet extends HttpServlet {
             prd.setDisapproved(true);
             prd.save();
             log.info("PR has been disapproved by " + user);
+            pullRequestService.addComment(prd.getRepositoryId(), prd.getPullRequestId(),
+                getCommentTextDisapproval(user));
             return;
         }
 
@@ -223,17 +226,13 @@ public class DisapprovalServlet extends HttpServlet {
         prd.setDisapprovedBy("None");
         prd.save();
         log.info("PR is no longer disapproved");
-
-        // TODO: let admins undisapprove other people's disapproval?
-        /*
         try {
-            permissionValidationService.validateForGlobal(Permission.SYS_ADMIN);
-        } catch (AuthorisationException notAdminException) {
-            log.warn("User {} is not a system administrator", req.getRemoteUser());
-            res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You do not have permission to access this page.");
-            return;
+            Comment foo = pullRequestService.addComment(prd.getRepositoryId(), prd.getPullRequestId(),
+                getCommentTextRemoveDisapproval(user));
+            assert (true);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        */
     }
 
     private URI getUri(HttpServletRequest req) {
@@ -243,5 +242,15 @@ public class DisapprovalServlet extends HttpServlet {
             builder.append(req.getQueryString());
         }
         return URI.create(builder.toString());
+    }
+
+    private String getCommentTextDisapproval(String user) {
+        final String HTML = "<font color=\"#AA0000\">ಠ_ಠ</font> Pull request disapproved";
+        return HTML.replace("__USER__", user);
+    }
+
+    private String getCommentTextRemoveDisapproval(String user) {
+        final String HTML = "<font color=\"#00AA00\">( ͡° ͜ʖ ͡°)</font> Pull request disapproval removed";
+        return HTML.replace("__USER__", user);
     }
 }
