@@ -99,6 +99,7 @@ public class DisapproveConfigurationServlet extends HttpServlet {
                     .put("repository", repo)
                     .put("disapprovalConfiguration", dc)
                     .put("isStrict", dc.getDisapprovalMode().equals(DisapprovalMode.STRICT_MODE) ? "true" : "")
+                    .put("isEnabled", dc.isEnabled())
                     .build()
                 );
         } catch (SoyException e) {
@@ -125,8 +126,7 @@ public class DisapproveConfigurationServlet extends HttpServlet {
         }
 
         try {
-            log.error("PARAM: " + req.getParameter("disapprovalConfiguration"));
-            //pm.setDisapprovalConfiguration(repo, DisapprovalMode.fromMode(req.getParameter("disapprovalConfiguration")));
+            pm.setDisapprovalConfigurationFromRequest(repo, req);
         } catch (Exception e) {
             res.sendRedirect(req.getRequestURL().toString() + "?error=" + e.getMessage());
         }

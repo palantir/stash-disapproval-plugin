@@ -87,7 +87,10 @@
     <!-- weight= <11, to the left of MERGE, >= 11, to the right of merge. -->
     <web-item key="pull-request-disapproval-face" name="Pull Request Disapproval Face" weight="9" section="stash.pull-request.toolbar.actions">
         <!-- If pull request is disapproved, we want to show the disapproval face -->
-        <condition class="com.palantir.stash.disapprove.conditions.IsPullRequestDisapproved"/>
+        <conditions type="AND">
+            <condition class="com.palantir.stash.disapprove.conditions.IsDisapprovalEnabledForRepoCondition"/>
+            <condition class="com.palantir.stash.disapprove.conditions.IsPullRequestDisapproved"/>
+        </conditions>
         <!--
         <param name="stashButtonPrimary" value="true"/>
         -->
@@ -99,6 +102,7 @@
     <web-item key="pull-request-disapproval-button" name="Pull Request Disapproval Button" weight="20" section="stash.pull-request.toolbar.actions">
         <!-- If pull request is NOT disapproved, we want to show the disapproval button -->
         <conditions type="AND">
+            <condition class="com.palantir.stash.disapprove.conditions.IsDisapprovalEnabledForRepoCondition"/>
             <condition class="com.atlassian.stash.web.conditions.PullRequestInState">
                 <param name="state">OPEN</param>
             </condition>
@@ -116,6 +120,7 @@
     <web-item key="pull-request-undisapproval-button" name="Pull Request Un-Disapproval Button" weight="20" section="stash.pull-request.toolbar.actions">
         <!-- If pull request IS disapproved, we want to show the un-disapproval button -->
         <conditions type="AND">
+            <condition class="com.palantir.stash.disapprove.conditions.IsDisapprovalEnabledForRepoCondition"/>
             <condition class="com.atlassian.stash.web.conditions.PullRequestInState">
                 <param name="state">OPEN</param>
             </condition>

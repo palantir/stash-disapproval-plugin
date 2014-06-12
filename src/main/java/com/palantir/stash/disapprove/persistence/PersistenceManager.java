@@ -43,8 +43,16 @@ public class PersistenceManager {
     public void setDisapprovalConfigurationFromRequest(Repository repo, HttpServletRequest req) {
         log.trace("Setting configuration for repo" + repo.getId().toString());
 
-        DisapprovalMode dm = DisapprovalMode.fromMode(req.getParameter("mode"));
-        setDisapprovalConfiguration(repo, dm);
+        DisapprovalMode dm = DisapprovalMode.ADVISORY_MODE;
+        if (req.getParameter("strictModeEnabled") != null) {
+            dm = DisapprovalMode.STRICT_MODE;
+        }
+
+        Boolean isEnabled = false;
+        if (req.getParameter("enabled") != null) {
+            isEnabled = true;
+        }
+        setDisapprovalConfiguration(repo, dm, isEnabled);
     }
 
     ///////
@@ -55,7 +63,7 @@ public class PersistenceManager {
         return DisapprovalConfigurationImpl.getByRepository(ao, repo);
     }
 
-    public void setDisapprovalConfiguration(Repository repo, DisapprovalMode mode) {
+    public void setDisapprovalConfiguration(Repository repo, DisapprovalMode mode, Boolean isEnabled) {
         DisapprovalConfiguration[] configs = ao.find(DisapprovalConfiguration.class, "REPO_ID = ?", repo.getId());
         DisapprovalConfiguration dc;
         if (configs.length == 0) {
@@ -64,6 +72,7 @@ public class PersistenceManager {
             dc = configs[0];
         }
         dc.setDisapprovalMode(mode);
+        dc.setEnabled(isEnabled);
         dc.save();
     }
 

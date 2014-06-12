@@ -60,6 +60,11 @@ public class PullRequestDisapprovalMergeCheck implements MergeRequestCheck {
             return;
         }
 
+        if (!dpc.isEnabled()) {
+            log.trace("Disapproval not enabled for repo " + repo.getName());
+            return;
+        }
+
         if (dpc.getDisapprovalMode().equals(DisapprovalMode.ADVISORY_MODE)) {
             // if in advisory mode, don't actually prevent merges
             log.trace("Disapproval is in advisory mode for this repo");

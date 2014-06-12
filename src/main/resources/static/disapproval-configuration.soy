@@ -2,6 +2,7 @@
 
 /**
  * @param repository
+ * @param isEnabled
  * @param isStrict
  * @param error
  **/
@@ -33,6 +34,14 @@
       {param action: '' /}
       {param content}
         {call aui.form.checkboxField}
+          {param legendContent: stash_i18n('stash.web.stash.enabled.button.description', 'Enable Disapproval') /}
+          {param fields: [[
+            'id': 'enabled',
+            'labelText': stash_i18n('stash.web.stash.enabled.button.label', 'Enable Disapproval'),
+            'isChecked': $isEnabled
+            ]] /}
+        {/call}
+        {call aui.form.checkboxField}
           {param legendContent: stash_i18n('stash.web.stash.enable-strict-mode.button.description', 'Enable strict disapproval mode') /}
           {param fields: [[
             'id': 'strictModeEnabled',
@@ -40,15 +49,15 @@
             'isChecked': $isStrict
             ]] /}
         {/call}
-      {/param}
-    {/call}
-    <br />
-    {call aui.form.buttons}
-      {param content}
-        {call aui.form.submit}
-          {param id: 'submit' /}
-          {param text: stash_i18n('stash.web.stash.disapproval.submit', 'Save') /}
-          {param type: 'submit' /}
+        <br />
+        {call aui.form.buttons}
+          {param content}
+            {call aui.form.submit}
+              {param id: 'submit' /}
+              {param text: stash_i18n('stash.web.stash.disapproval.submit', 'Save') /}
+              {param type: 'submit' /}
+            {/call}
+          {/param}
         {/call}
       {/param}
     {/call}

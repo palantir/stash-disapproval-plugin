@@ -48,6 +48,14 @@ public interface DisapprovalConfiguration extends Entity {
     @Mutator("REPO_ID")
     public void setRepositoryId(Integer repoId);
 
+    @NotNull
+    @Default("false")
+    @Accessor("IS_ENABLED")
+    public Boolean isEnabled();
+
+    @Mutator("IS_ENABLED")
+    public void setEnabled(Boolean isEnabled);
+
     /////
     // These are implemented in DisapprovalPluginConfigurationImpl - so the user can use enums
     /////
