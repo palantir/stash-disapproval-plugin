@@ -38,6 +38,7 @@ import com.atlassian.stash.user.PermissionValidationService;
 import com.atlassian.stash.user.StashAuthenticationContext;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.disapprove.logger.PluginLoggerFactory;
+import com.palantir.stash.disapprove.persistence.DisapprovalConfiguration;
 import com.palantir.stash.disapprove.persistence.PersistenceManager;
 import com.palantir.stash.disapprove.persistence.PullRequestDisapproval;
 
@@ -84,14 +85,11 @@ public class DisapprovalServlet extends HttpServlet {
         final PullRequest pr = pullRequestService.getById(repoId, prId);
         final Repository repo = pr.getToRef().getRepository();
 
-        if (pr == null) {
-            throw new IllegalArgumentException("No PR found for repo id " + repoId.toString() + " pr id "
-                + prId.toString());
-        }
-
         PullRequestDisapproval prd;
+        DisapprovalConfiguration dc;
         try {
             prd = pm.getPullRequestDisapproval(pr);
+            dc = pm.getDisapprovalConfiguration(repo);
         } catch (SQLException e) {
             throw new ServletException(e);
         }
@@ -113,7 +111,7 @@ public class DisapprovalServlet extends HttpServlet {
             processDisapprovalChange(repo, user, prd, oldDisapproval, disapproval);
             //res.setContentType("text/html;charset=UTF-8");
             w.append(new JSONObject(ImmutableMap.of("disapproval", prd.isDisapproved(), "disapprovedBy",
-                prd.getDisapprovedBy())).toString());
+                prd.getDisapprovedBy(), "enabledForRepo", dc.isEnabled())).toString());
         } catch (IllegalStateException e) {
             w.append(new JSONObject(ImmutableMap.of("error", e.getMessage())).toString());
             res.setStatus(401);

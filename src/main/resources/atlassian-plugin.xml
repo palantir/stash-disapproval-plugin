@@ -157,4 +157,22 @@
         <context>disapprove</context>
     </web-resource>
 
+    <web-resource key="disapprovalListResources" name="Disapproval List Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <dependency>stash.web.resources:jquery</dependency>
+        <resource type="download" name="disapprove-list.js" location="/static/disapprove-list.js"/>
+        <context>stash.page.pullRequest.list</context>
+        <context>disapprove</context>
+    </web-resource>
+
+    <web-section key="disapproval-status-section"  name="Section for displaying disapproval status" weight="250" location="stash.pull-request.related-entities">
+        <label key="disapproval-section-label">Disapproval</label>
+        <condition class="com.palantir.stash.disapprove.conditions.IsDisapprovalEnabledForRepoCondition"/>
+    </web-section>
+
+    <web-panel key="disapproval-status-panel"  name="Panel for displaying disapproval status" location="disapproval-status-section" class="com.palantir.stash.disapprove.webpanel.DisapprovalStatusWebPanel">
+        <label key="disapproval-panel-label">Disapproval</label>
+        <condition class="com.palantir.stash.disapprove.conditions.IsDisapprovalEnabledForRepoCondition"/>
+    </web-panel>
+
 </atlassian-plugin>
