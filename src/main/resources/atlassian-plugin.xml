@@ -84,20 +84,32 @@
         <link>/plugins/servlet/disapproval/repo-admin/${repository.project.key}/${repository.slug}</link>
     </web-item>
 
+    <!-- weight= <11, to the left of MERGE, >= 11, to the right of merge. -->
+    <web-item key="pull-request-disapproval-face" name="Pull Request Disapproval Face" weight="9" section="stash.pull-request.toolbar.actions">
+        <!-- If pull request is disapproved, we want to show the disapproval face -->
+        <condition class="com.palantir.stash.disapprove.conditions.IsPullRequestDisapproved"/>
+        <!--
+        <param name="stashButtonPrimary" value="true"/>
+        -->
+        <label key="plugin.page.pr.disapproval.button.label">ಠ_ಠ</label>
+        <tooltip key="plugin.page.pr.disapproval.button.tooltip">This Pull Request is bad and you should feel bad!</tooltip>
+        <styleClass>disapproval-face</styleClass>
+    </web-item>
+
     <web-item key="pull-request-disapproval-button" name="Pull Request Disapproval Button" weight="20" section="stash.pull-request.toolbar.actions">
         <!-- If pull request is NOT disapproved, we want to show the disapproval button -->
         <conditions type="AND">
             <condition class="com.atlassian.stash.web.conditions.PullRequestInState">
                 <param name="state">OPEN</param>
             </condition>
+            <condition class="com.palantir.stash.disapprove.conditions.CanUserDisapprove" />
             <condition class="com.palantir.stash.disapprove.conditions.IsPullRequestDisapproved" invert="true"/>
         </conditions>
+        <!--
         <param name="stashButtonPrimary" value="true"/>
+        -->
         <label key="plugin.page.pr.disapproval.button.label">Disapprove</label>
         <tooltip key="plugin.page.pr.disapproval.button.tooltip">Disapprove this Pull Request</tooltip>
-<!--
-        <link>/plugins/servlet/disapproval/repo-admin/${repository.project.key}/${repository.slug}</link>
--->
         <styleClass>disapprove-pull-request</styleClass>
     </web-item>
 
@@ -107,14 +119,14 @@
             <condition class="com.atlassian.stash.web.conditions.PullRequestInState">
                 <param name="state">OPEN</param>
             </condition>
+            <condition class="com.palantir.stash.disapprove.conditions.CanUserDisapprove" />
             <condition class="com.palantir.stash.disapprove.conditions.IsPullRequestDisapproved"/>
         </conditions>
+        <!--
         <param name="stashButtonPrimary" value="true"/>
+        -->
         <label key="plugin.page.pr.disapproval.button.label">Remove Disapproval</label>
         <tooltip key="plugin.page.pr.disapproval.button.tooltip">Remove Disapproval for this Pull Request</tooltip>
-<!--
-        <link>/plugins/servlet/disapproval/repo-admin/${repository.project.key}/${repository.slug}</link>
--->
         <styleClass>undisapprove-pull-request</styleClass>
     </web-item>
 

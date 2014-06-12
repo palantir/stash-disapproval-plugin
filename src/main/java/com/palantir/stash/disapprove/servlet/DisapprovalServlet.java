@@ -30,7 +30,9 @@ import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.stash.exception.AuthorisationException;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
+import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.request.RequestManager;
+import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.PermissionValidationService;
 import com.atlassian.stash.user.StashAuthenticationContext;
 import com.google.common.collect.ImmutableMap;
@@ -79,6 +81,7 @@ public class DisapprovalServlet extends HttpServlet {
             throw new IllegalArgumentException("The required paramaters are: " + REQ_PARAMS, e);
         }
         final PullRequest pr = pullRequestService.getById(repoId, prId);
+        final Repository repo = pr.getToRef().getRepository();
 
         if (pr == null) {
             throw new IllegalArgumentException("No PR found for repo id " + repoId.toString() + " pr id "
@@ -103,15 +106,18 @@ public class DisapprovalServlet extends HttpServlet {
         } else {
             throw new IllegalArgumentException("The required parameters are: " + REQ_PARAMS);
         }
+        Writer w = res.getWriter();
+        res.setContentType("application/json;charset=UTF-8");
         try {
-            processDisapprovalChange(user, prd, oldDisapproval, disapproval);
-            Writer w = res.getWriter();
+            processDisapprovalChange(repo, user, prd, oldDisapproval, disapproval);
             //res.setContentType("text/html;charset=UTF-8");
-            res.setContentType("application/json;charset=UTF-8");
             w.append(new JSONObject(ImmutableMap.of("disapproval", prd.isDisapproved(), "disapprovedBy",
                 prd.getDisapprovedBy())).toString());
+        } catch (IllegalStateException e) {
+            w.append(new JSONObject(ImmutableMap.of("error", e.getMessage())).toString());
+            res.setStatus(401);
         } finally {
-            res.getWriter().close();
+            w.close();
         }
     }
 
@@ -129,8 +135,6 @@ public class DisapprovalServlet extends HttpServlet {
         final String pathInfo = req.getPathInfo();
         final String[] parts = pathInfo.split("/");
 
-        log.debug("PATH INFO: " + pathInfo);
-        log.debug("PATH COUNT: " + Integer.toString(parts.length));
         if (parts.length != 5) {
             throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT);
         }
@@ -168,69 +172,6 @@ public class DisapprovalServlet extends HttpServlet {
         }
     }
 
-    public void oldDoGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-
-        final String user = authenticateUser(req, res);
-        if (user == null) {
-            // not logged in, redirect
-            res.sendRedirect(lup.getLoginUri(getUri(req)).toASCIIString());
-            return;
-        }
-
-        final String URL_FORMAT = "BASE_URL/REPO_ID/PR_ID/[disapproved: true|false]";
-        final String pathInfo = req.getPathInfo();
-        final String[] parts = pathInfo.split("/");
-
-        log.debug("PATH INFO: " + pathInfo);
-        if (parts.length != 4) {
-            throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT);
-        }
-
-        final Integer repoId;
-        final Long prId;
-        try {
-            repoId = Integer.valueOf(parts[1]);
-            prId = Long.valueOf(parts[2]);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT, e);
-        }
-
-        final PullRequest pr = pullRequestService.getById(repoId, prId);
-        if (pr == null) {
-            throw new IllegalArgumentException("No PR found for repo id " + repoId.toString() + " pr id "
-                + prId.toString());
-        }
-
-        PullRequestDisapproval prd;
-        try {
-            prd = pm.getPullRequestDisapproval(pr);
-        } catch (SQLException e) {
-            throw new ServletException(e);
-        }
-
-        boolean oldDisapproval = prd.isDisapproved();
-        boolean disapproval;
-
-        if (parts[3].equalsIgnoreCase("true")) {
-            disapproval = true;
-        } else if (parts[3].equalsIgnoreCase("false")) {
-            disapproval = false;
-        } else {
-            throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT);
-        }
-
-        try {
-            processDisapprovalChange(user, prd, oldDisapproval, disapproval);
-            Writer w = res.getWriter();
-            //res.setContentType("text/html;charset=UTF-8");
-            res.setContentType("application/json;charset=UTF-8");
-            w.append(new JSONObject(ImmutableMap.of("disapproval", prd.isDisapproved(), "disapprovedBy",
-                prd.getDisapprovedBy())).toString());
-        } finally {
-            res.getWriter().close();
-        }
-    }
-
     private String authenticateUser(HttpServletRequest req, HttpServletResponse res) throws IOException {
         try {
             permissionValidationService.validateAuthenticated();
@@ -245,7 +186,7 @@ public class DisapprovalServlet extends HttpServlet {
         return user;
     }
 
-    private void processDisapprovalChange(final String user, PullRequestDisapproval prd,
+    private void processDisapprovalChange(final Repository repo, final String user, PullRequestDisapproval prd,
         boolean oldDisapproval, boolean disapproval) throws IOException {
 
         if (disapproval) {
@@ -269,6 +210,15 @@ public class DisapprovalServlet extends HttpServlet {
             return;
         }
 
+        if (!user.equalsIgnoreCase(prd.getDisapprovedBy())) {
+            // TODO: is user an admin?
+            try {
+                permissionValidationService.validateForRepository(repo, Permission.REPO_ADMIN);
+            } catch (AuthorisationException e) {
+                throw new IllegalStateException("User " + user + " is not able to remove disapproval set by user "
+                    + prd.getDisapprovedBy());
+            }
+        }
         prd.setDisapproved(false);
         prd.setDisapprovedBy("None");
         prd.save();

@@ -6,16 +6,18 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
     //alert("bar: " + baseUrl)
     
     window.onload = function() {
+    	//$(".disapproval-face").css({"color":"#AA0000", "font-weight":"1000"})
+    	$(".disapproval-face").css({"color":"#AA0000", "font-weight":"bolder"})
+    	
+    	
     	baseUrl = nav.pluginServlets().build()
         repoId = state.getPullRequest().attributes.toRef.attributes.repository.id;
         commit = state.getPullRequest().attributes.fromRef.attributes.latestChangeset;
 	    prId = state.getPullRequest().attributes.id;
 	    version = state.getPullRequest().attributes.version;
-        var prd = $.get(baseUrl + '/disapproval/disapprove/' + repoId + '/' + prId)
+        prd = $.get(baseUrl + '/disapproval/disapprove/' + repoId + '/' + prId)
         
         // Surface to user who disapproved the request and make its status more obvious
-        $(".undisapprove-pull-request").css({"color":"#ff0000"})
-        
         prd.success(function(data) {
         	//alert("Got data: " + JSON.stringify(data))
         	if (data.disapproved) {
@@ -23,9 +25,12 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
         	} else {
         		console.log("Pull Request NOT Disapproved")
         	}
-	        var upr = $(".undisapprove-pull-request")
+	        //var upr = $(".undisapprove-pull-request")
+	        var upr = $(".disapproval-face")
 	        upr.html(upr.html() + " <small>(by " + data.disapprovedBy + ")</small>")
+	        
         });
+        
         
                 
         pr = state.getPullRequest();
@@ -43,7 +48,11 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
                 	window.location.reload(true);
                 });
                 jqxhr.fail(function(data) {
-	                alert("fail: " + JSON.stringify(data));
+                	if (data.responseJSON.error) {
+                		alert("Could not disapprove PR: " + data.responseJSON.error)
+                	} else {
+		                alert("fail: " + JSON.stringify(data));
+		            }
                 });
                 jqxhr.always(function(data) {
 	                //alert("always!");
@@ -63,7 +72,11 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
                 	window.location.reload(true);
                 });
                 jqxhr.fail(function(data) {
-	                alert("fail: " + JSON.stringify(data));
+                	if (data.responseJSON.error) {
+                		alert("Could not remove disapproval for PR: " + data.responseJSON.error)
+                	} else {
+		                alert("fail: " + JSON.stringify(data));
+		            }
                 });
                 jqxhr.always(function(data) {
 	                //alert("always!");

@@ -3,6 +3,7 @@
 /**
  * @param repository
  * @param isStrict
+ * @param error
  **/
 {template .repositoryConfigurationPanel}
 <html>
@@ -14,6 +15,9 @@
     <title>{{stash_i18n('stash.web.repository.git-ops.title', 'Disapproval settings for {0} / {1}', $repository.project.name, $repository.name)}}</title>
 </head>
 <body>
+{if $error}
+  <div style="color: #BF3333; background-color: #DDDDDD"><div style="padding: 15px"><b>ERROR:</b> {$error}</b></div></div>
+{/if}
 {call aui.group.group}
     {param content}
         {call aui.group.item}

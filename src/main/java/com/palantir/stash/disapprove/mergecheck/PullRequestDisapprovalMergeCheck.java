@@ -62,7 +62,7 @@ public class PullRequestDisapprovalMergeCheck implements MergeRequestCheck {
 
         if (dpc.getDisapprovalMode().equals(DisapprovalMode.ADVISORY_MODE)) {
             // if in advisory mode, don't actually prevent merges
-            log.debug("Disapproval is in advisory mode for this repo");
+            log.trace("Disapproval is in advisory mode for this repo");
             return;
         }
 
@@ -70,18 +70,19 @@ public class PullRequestDisapprovalMergeCheck implements MergeRequestCheck {
         try {
             prd = cpm.getPullRequestDisapproval(pr);
         } catch (SQLException e) {
-            log.error("Unable to get disapproval configuration, disapproving to be safe");
+            log.error("Unable to get disapproval configuration, disapproving to be safe", e);
             mr.veto("Unable to determine disapproval information",
-                "Unable to determine disapproval information, disapproving pull request: " + e.getMessage());
+                "Unable to determine disapproval information, assuming PR is disapproved");
             return;
         }
 
         if (prd.isDisapproved()) {
-            log.debug("PR Disapproved");
+            log.trace("PR Disapproved");
             mr.veto("This Pull Request is Disapproved",
-                "Ask the disapprover '" + prd.getDisapprovedBy() + "' to undisapprove the pull request");
+                "Ask the disapprover '" + prd.getDisapprovedBy()
+                    + "' or a repository admin to remove their disapproval of the pull request");
         } else {
-            log.debug("PR Not Disapproved");
+            log.trace("PR Not Disapproved");
         }
     }
 }

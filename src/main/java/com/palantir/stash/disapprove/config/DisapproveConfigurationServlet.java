@@ -36,6 +36,7 @@ import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.disapprove.logger.PluginLoggerFactory;
 import com.palantir.stash.disapprove.persistence.DisapprovalConfiguration;
+import com.palantir.stash.disapprove.persistence.DisapprovalMode;
 import com.palantir.stash.disapprove.persistence.PersistenceManager;
 
 public class DisapproveConfigurationServlet extends HttpServlet {
@@ -66,7 +67,7 @@ public class DisapproveConfigurationServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-        Repository repo = getRepository(req);
+        final Repository repo = getRepository(req);
 
         // Authenticate user
         try {
@@ -88,25 +89,6 @@ public class DisapproveConfigurationServlet extends HttpServlet {
 
         res.setContentType("text/html;charset=UTF-8");
         try {
-            // Build select data for disapproval modes
-            //ImmutableList.Builder<ImmutableMap<String, String>> disapprovalModes = ImmutableList.Builder<ImmutableMap<String,String>>();
-
-            /*
-            
-            DisapprovalMode.getSelectList(dc)
-
-            for (JenkinsServerConfiguration jsc : configurationPersistanceManager.getAllJenkinsServerConfigurations()) {
-                AuthenticationMode am = jsc.getAuthenticationMode();
-                ImmutableList<ImmutableMap<String, String>> selectList = AuthenticationMode.getSelectList(am);
-
-                authDataBuilder.put(jsc.getName(), selectList);
-
-                // For convenience, store the value of the selected field in a separate map
-                authDataSelectedBuilder.put(jsc.getName(),
-                    jsc.getAuthenticationMode().getSelectListEntry(false).get("value"));
-
-            }
-            */
             DisapprovalConfiguration dc = pm.getDisapprovalConfiguration(repo);
             pageBuilderService.assembler().resources().requireContext("plugin.page.disapproval");
             soyTemplateRenderer.render(res.getWriter(),
@@ -116,8 +98,7 @@ public class DisapproveConfigurationServlet extends HttpServlet {
                 ImmutableMap.<String, Object> builder()
                     .put("repository", repo)
                     .put("disapprovalConfiguration", dc)
-                    .put("isStrict", "foo")
-                    //.put("isStrict", dc.getDisapprovalMode().equals(DisapprovalMode.STRICT_MODE) ? "true" : "")
+                    .put("isStrict", dc.getDisapprovalMode().equals(DisapprovalMode.STRICT_MODE) ? "true" : "")
                     .build()
                 );
         } catch (SoyException e) {
@@ -134,19 +115,18 @@ public class DisapproveConfigurationServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        final Repository repo = getRepository(req);
         try {
-            permissionValidationService.validateForGlobal(Permission.SYS_ADMIN);
+            permissionValidationService.validateForRepository(repo, Permission.REPO_ADMIN);
         } catch (AuthorisationException e) {
-            // Skip form processing
-            doGet(req, res);
+            // Skip form processing and surface error
+            res.sendRedirect(req.getRequestURL().toString() + "?error=" + e.getMessage());
             return;
         }
 
-        //String name = req.getParameter("name");
-
         try {
-            //configurationPersistanceManager.setJenkinsServerConfigurationFromRequest(req);
-            //pluginUserManager.createStashbotUser(configurationPersistanceManager.getJenkinsServerConfiguration(name));
+            log.error("PARAM: " + req.getParameter("disapprovalConfiguration"));
+            //pm.setDisapprovalConfiguration(repo, DisapprovalMode.fromMode(req.getParameter("disapprovalConfiguration")));
         } catch (Exception e) {
             res.sendRedirect(req.getRequestURL().toString() + "?error=" + e.getMessage());
         }
