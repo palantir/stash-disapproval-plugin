@@ -154,8 +154,10 @@ public class DisapprovalServlet extends HttpServlet {
         }
 
         PullRequestDisapproval prd;
+        DisapprovalConfiguration dc;
         try {
             prd = pm.getPullRequestDisapproval(pr);
+            dc = pm.getDisapprovalConfiguration(pr.getToRef().getRepository());
         } catch (SQLException e) {
             throw new ServletException(e);
         }
@@ -165,7 +167,7 @@ public class DisapprovalServlet extends HttpServlet {
             //res.setContentType("text/html;charset=UTF-8");
             res.setContentType("application/json;charset=UTF-8");
             w.append(new JSONObject(ImmutableMap.of("disapproval", prd.isDisapproved(), "disapprovedBy",
-                prd.getDisapprovedBy())).toString());
+                prd.getDisapprovedBy(), "enabledForRepo", dc.isEnabled())).toString());
         } finally {
             res.getWriter().close();
         }
