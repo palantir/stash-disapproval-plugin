@@ -15,16 +15,20 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
         
         // Surface to user who disapproved the request and make its status more obvious
         prd.success(function(data) {
-        	//alert("Got data: " + JSON.stringify(data))
         	if (data.disapproved) {
         		console.log("Pull Request is Disapproved by " + data.disapprovedBy)
         	} else {
         		console.log("Pull Request NOT Disapproved")
         	}
-	        //var upr = $(".undisapprove-pull-request")
 	        var upr = $(".disapproval-face")
 	        upr.html(upr.html() + " <small>(by " + data.disapprovedBy + ")</small>")
-	        
+        });
+        prd.fail(function(data) {
+        	if (data.responseJSON.error) {
+        		alert("Could not fetch disapproval configuration: " + data.responseJSON.error)
+        	} else {
+        		alert("Fail: " + JSON.stringify(data));
+            }
         });
         
         
@@ -37,7 +41,6 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
             button = button[0];
             button.html
             button.onclick = function() {
-                //var jqxhr = $.get(baseUrl + '/disapproval/disapprove/' + repoId + '/' + prId + '/true');
                 var jqxhr = $.post(baseUrl + '/disapproval/disapprove', {"repoId":repoId, "prId":prId, "disapproved":"true"});
                 jqxhr.done(function(data) {
 	                console.log("success: " + JSON.stringify(data));
@@ -50,9 +53,6 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
 		                alert("fail: " + JSON.stringify(data));
 		            }
                 });
-                jqxhr.always(function(data) {
-	                //alert("always!");
-                });
             }
         }
         
@@ -61,7 +61,6 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
         if (button.length > 0) {
             button = button[0];
             button.onclick = function() {
-                //var jqxhr = $.get(baseUrl + '/disapproval/disapprove/' + repoId + '/' + prId + '/false');
                 var jqxhr = $.post(baseUrl + '/disapproval/disapprove', {"repoId":repoId, "prId":prId, "disapproved":"false"});
                 jqxhr.done(function(data) {
 	                console.log("success: " + JSON.stringify(data));
@@ -73,9 +72,6 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
                 	} else {
 		                alert("fail: " + JSON.stringify(data));
 		            }
-                });
-                jqxhr.always(function(data) {
-	                //alert("always!");
                 });
             }
         }
