@@ -49,6 +49,7 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
 		        		console.log("Pull Request is Disapproved by " + data.disapprovedBy)
 						disapprovalHtml = "<td class=\"reviewers\"><font color=\"#AA0000\">ಠ_ಠ</font></td>"
 		        	} else {
+						disapprovalHtml = "<td class=\"reviewers\"></td>"
 		        		console.log("Pull Request NOT Disapproved")
 		        	}
 					reviewers.before(disapprovalHtml)
