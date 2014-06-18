@@ -1,12 +1,8 @@
 require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, $) {
-    //alert("foo4")
-    //console.log(state);
-    //alert(state);
-	//baseUrl = nav.pluginServlets().build()
-    //alert("bar: " + baseUrl)
-    
-    window.onload = function() {
-    	//$(".disapproval-face").css({"color":"#AA0000", "font-weight":"1000"})
+
+	// http://stackoverflow.com/questions/6285491/are-there-universal-alternatives-to-window-onload-without-using-frameworks
+	// Decided to do with jquery, to avoid messing up the window.onload
+	$(document).ready(function() {
     	$(".disapproval-face").css({"color":"#AA0000", "font-weight":"bolder"})
     	
     	
@@ -83,5 +79,5 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
                 });
             }
         }
-    }
+    })
 })

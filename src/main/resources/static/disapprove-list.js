@@ -1,6 +1,8 @@
 require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, $) {
 	
-	window.onload = function() {
+	// http://stackoverflow.com/questions/6285491/are-there-universal-alternatives-to-window-onload-without-using-frameworks
+	// Decided to do with jquery, to avoid messing up the window.onload
+	$(document).ready(function() {
 	
 	
 		compiledData = {}
@@ -67,6 +69,6 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
 				})
 			}
 		})
-	}
+	})
 })
 		
