@@ -56,9 +56,9 @@ public class PullRequestMetadataDefucker {
         PullRequest pr = pre.getPullRequest();
         Repository repo = pr.getToRef().getRepository();
         try {
-            log.trace("Ensuring DisapprovalConfiguration exists for REPO " + repo.getId().toString());
+            log.trace("Ensuring DisapprovalConfiguration exists for REPO " + repo.getId());
             cpm.getDisapprovalConfiguration(repo);
-            log.trace("Ensuring PullRequestDisapproval exists for PR " + pr.getId().toString());
+            log.trace("Ensuring PullRequestDisapproval exists for PR " + pr.getId());
             cpm.getPullRequestDisapproval(pr);
         } catch (Exception e) {
             log.error("Undeclared exception: ", e);

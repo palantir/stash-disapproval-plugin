@@ -41,7 +41,7 @@ public class PersistenceManager {
     // Setter from request object
     ///////
     public void setDisapprovalConfigurationFromRequest(Repository repo, HttpServletRequest req) {
-        log.trace("Setting configuration for repo" + repo.getId().toString());
+        log.trace("Setting configuration for repo" + repo.getId());
 
         DisapprovalMode dm = DisapprovalMode.ADVISORY_MODE;
         if (req.getParameter("strictModeEnabled") != null) {
@@ -59,7 +59,7 @@ public class PersistenceManager {
     // Other methods
     ///////
     public DisapprovalConfiguration getDisapprovalConfiguration(Repository repo) throws SQLException {
-        log.trace("Getting configuration for repo" + repo.getId().toString());
+        log.trace("Getting configuration for repo" + repo.getId());
         return DisapprovalConfigurationImpl.getByRepository(ao, repo);
     }
 
@@ -83,9 +83,9 @@ public class PersistenceManager {
     public void setPullRequestDisapproval(PullRequest pr, String username, boolean isDisapproved) throws SQLException {
         Repository repo = pr.getToRef().getRepository();
         if (isDisapproved) {
-            log.trace("Disapproving pull request " + pr.getId().toString() + " for repo " + repo.getName());
+            log.trace("Disapproving pull request " + pr.getId() + " for repo " + repo.getName());
         } else {
-            log.trace("Un-disapproving pull request " + pr.getId().toString() + " for repo " + repo.getName());
+            log.trace("Un-disapproving pull request " + pr.getId() + " for repo " + repo.getName());
         }
         PullRequestDisapprovalImpl.setPullRequestDisapproval(ao, pr, username, isDisapproved);
     }

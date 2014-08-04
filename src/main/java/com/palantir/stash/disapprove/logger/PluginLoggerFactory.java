@@ -43,7 +43,7 @@ public class PluginLoggerFactory {
         try {
             configurator.doConfigure(is);
         } catch (JoranException e) {
-            System.err.println("Error configuring logging framework" + e.toString());
+            System.err.println("Error configuring logging framework" + e);
         }
     }
 

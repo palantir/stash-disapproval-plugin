@@ -38,7 +38,7 @@ public class IsDisapprovalEnabledForRepoCondition implements Condition {
         try {
             dc = pm.getDisapprovalConfiguration(repo);
         } catch (SQLException e) {
-            log.error("Failed to get DisapprovalConfiguration for repo: " + repo.toString(), e);
+            log.error("Failed to get DisapprovalConfiguration for repo: " + repo, e);
             return false;
         }
 

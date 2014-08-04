@@ -149,7 +149,7 @@ public class DisapprovalServlet extends HttpServlet {
 
         final PullRequest pr = pullRequestService.getById(repoId, prId);
         if (pr == null) {
-            throw new IllegalArgumentException("No PR found for repo id " + repoId.toString() + " pr id "
+            throw new IllegalArgumentException("No PR found for repo id " + repoId + " pr id "
                 + prId.toString());
         }
 
