@@ -76,6 +76,7 @@ public class PullRequestDisapprovalImpl {
             PullRequestDisapproval prd =
                 ao.create(PullRequestDisapproval.class, new DBParam("REPO_ID", repo.getId()),
                     new DBParam("PR_ID", pr.getId()), new DBParam("USERNAME", username));
+            prd.setDisapproved(isDisapproved);
             prd.save();
             return;
         }

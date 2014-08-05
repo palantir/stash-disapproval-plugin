@@ -53,6 +53,7 @@ public class PullRequestDisapprovalMergeCheckTest {
         Mockito.when(pm.getPullRequestDisapproval(pr)).thenReturn(prd);
         Mockito.when(pm.getDisapprovalConfiguration(repo)).thenReturn(dc);
         Mockito.when(dc.getDisapprovalMode()).thenReturn(DisapprovalMode.STRICT_MODE);
+        Mockito.when(dc.isEnabled()).thenReturn(true);
 
         prdmc = new PullRequestDisapprovalMergeCheck(pm, plf);
     }
@@ -73,5 +74,15 @@ public class PullRequestDisapprovalMergeCheckTest {
         prdmc.check(mr);
 
         Mockito.verify(mr).veto(Mockito.anyString(), Mockito.anyString());
+    }
+
+    @Test
+    public void testDisapprovalWhenDisabled() throws Exception {
+        Mockito.when(prd.isDisapproved()).thenReturn(true);
+        Mockito.when(dc.isEnabled()).thenReturn(false);
+
+        prdmc.check(mr);
+
+        Mockito.verify(mr, Mockito.never()).veto(Mockito.anyString(), Mockito.anyString());
     }
 }

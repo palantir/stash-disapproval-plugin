@@ -139,7 +139,7 @@ public class PersistenceManagerTest {
 
         int sizeOfData = ao.count(DisapprovalConfiguration.class);
 
-        Mockito.when(req.getParameter("mode")).thenReturn(DisapprovalMode.Constants.ADVISORY_VALUE);
+        Mockito.when(req.getParameter("strictModeEnabled")).thenReturn(null);
 
         cpm.setDisapprovalConfigurationFromRequest(repo, req);
 
@@ -158,7 +158,7 @@ public class PersistenceManagerTest {
 
         int sizeOfData = ao.count(DisapprovalConfiguration.class);
 
-        Mockito.when(req.getParameter("mode")).thenReturn(DisapprovalMode.Constants.STRICT_VALUE);
+        Mockito.when(req.getParameter("strictModeEnabled")).thenReturn(DisapprovalMode.Constants.STRICT_VALUE);
 
         cpm.setDisapprovalConfigurationFromRequest(repo, req);
 
