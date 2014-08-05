@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 
 import com.atlassian.plugin.web.model.WebPanel;
 import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.disapprove.logger.PluginLoggerFactory;
 import com.palantir.stash.disapprove.persistence.PersistenceManager;
 import com.palantir.stash.disapprove.persistence.PullRequestDisapproval;
@@ -55,7 +54,7 @@ public class DisapprovalStatusWebPanel implements WebPanel {
         final String DISAPPROVED_HTML = "<font color=\"#AA0000\">ಠ_ಠ</font> by __USER__";
         final String UNDISAPPROVED_HTML = "<font color=\"#00AA00\">( ͡° ͜ʖ ͡°)</font> by __USER__";
         try {
-            Repository repo = (Repository) context.get("repository");
+            // TODO: need this?  Repository repo = (Repository) context.get("repository");
             PullRequest pr = (PullRequest) context.get("pullRequest");
             PullRequestDisapproval prd = pm.getPullRequestDisapproval(pr);
 

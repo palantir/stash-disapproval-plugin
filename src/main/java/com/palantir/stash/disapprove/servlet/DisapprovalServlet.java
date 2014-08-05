@@ -27,7 +27,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 
 import com.atlassian.sal.api.auth.LoginUriProvider;
-import com.atlassian.stash.comment.Comment;
 import com.atlassian.stash.exception.AuthorisationException;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
@@ -227,7 +226,7 @@ public class DisapprovalServlet extends HttpServlet {
         prd.save();
         log.info("PR is no longer disapproved");
         try {
-            Comment foo = pullRequestService.addComment(prd.getRepositoryId(), prd.getPullRequestId(),
+            pullRequestService.addComment(prd.getRepositoryId(), prd.getPullRequestId(),
                 getCommentTextRemoveDisapproval(user));
             assert (true);
         } catch (Exception e) {
