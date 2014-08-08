@@ -1,5 +1,6 @@
 package com.palantir.stash.disapprove.logger;
 
+import java.io.File;
 import java.io.InputStream;
 
 import org.slf4j.Logger;
@@ -8,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
+
+import com.atlassian.sal.api.ApplicationProperties;
 
 /**
  * Programmatically configure our logging.
@@ -22,11 +25,26 @@ public class PluginLoggerFactory {
     private static final String ROOT = "com.palantir.stash.signupmanager";
     private static final Logger stashRootLogger = LoggerFactory.getLogger("ROOT");
 
-    private final LoggerContext context;
+    private LoggerContext context;
+
+    private final String homeDir;
+
+    public PluginLoggerFactory(ApplicationProperties applicationProperties) {
+        homeDir = applicationProperties.getHomeDirectory().getAbsolutePath();
+        init();
+    }
 
     public PluginLoggerFactory() {
+        homeDir = new File(".").getAbsolutePath();
+        init();
+    }
+
+    private void init() {
         // Assumes LSF4J is bound to logback
         context = (LoggerContext) LoggerFactory.getILoggerFactory();
+
+        // store the home dir to use for relative paths
+        context.putProperty("stash.home", homeDir);
 
         JoranConfigurator configurator = new JoranConfigurator();
         configurator.setContext(context);
@@ -43,7 +61,7 @@ public class PluginLoggerFactory {
         try {
             configurator.doConfigure(is);
         } catch (JoranException e) {
-            System.err.println("Error configuring logging framework" + e.toString());
+            System.err.println("Error configuring logging framework" + e);
         }
     }
 

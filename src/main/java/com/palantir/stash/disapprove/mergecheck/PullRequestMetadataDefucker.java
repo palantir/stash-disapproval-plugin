@@ -15,7 +15,6 @@ package com.palantir.stash.disapprove.mergecheck;
 
 import org.slf4j.Logger;
 
-import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventListener;
 import com.atlassian.stash.event.pull.PullRequestEvent;
 import com.atlassian.stash.pull.PullRequest;
@@ -33,17 +32,12 @@ import com.palantir.stash.disapprove.persistence.PersistenceManager;
  */
 public class PullRequestMetadataDefucker {
 
-    private static final String PLUGIN_KEY = "com.palantir.stash.stash-disapprove-plugin";
     private final PersistenceManager cpm;
     private final Logger log;
 
-    private final ActiveObjects ao;
-
-    public PullRequestMetadataDefucker(ActiveObjects ao, PersistenceManager cpm,
-        PluginLoggerFactory lf) {
+    public PullRequestMetadataDefucker(PersistenceManager cpm, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.log = lf.getLoggerForThis(this);
-        this.ao = ao;
     }
 
     /**
@@ -56,9 +50,9 @@ public class PullRequestMetadataDefucker {
         PullRequest pr = pre.getPullRequest();
         Repository repo = pr.getToRef().getRepository();
         try {
-            log.trace("Ensuring DisapprovalConfiguration exists for REPO " + repo.getId().toString());
+            log.trace("Ensuring DisapprovalConfiguration exists for REPO " + repo.getId());
             cpm.getDisapprovalConfiguration(repo);
-            log.trace("Ensuring PullRequestDisapproval exists for PR " + pr.getId().toString());
+            log.trace("Ensuring PullRequestDisapproval exists for PR " + pr.getId());
             cpm.getPullRequestDisapproval(pr);
         } catch (Exception e) {
             log.error("Undeclared exception: ", e);
