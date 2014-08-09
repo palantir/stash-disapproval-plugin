@@ -186,20 +186,16 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
         </plugins>
     </build>
     
     <properties>
-        <!--
-        <stash.version>2.9.4</stash.version>
-        <stash.data.version>2.9.4</stash.data.version>
-        -->
-        <stash.version>2.12.2</stash.version>
-        <stash.data.version>2.12.2</stash.data.version>
+        <stash.version>3.2.0</stash.version>
+        <stash.data.version>3.2.0</stash.data.version>
         <amps.version>5.0.3</amps.version>
         <plugin.testrunner.version>1.1.4</plugin.testrunner.version>
         <!-- TODO: I manually figured out this version - can we automatically figure it out? -->
