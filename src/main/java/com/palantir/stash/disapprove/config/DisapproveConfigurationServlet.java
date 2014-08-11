@@ -80,9 +80,9 @@ public class DisapproveConfigurationServlet extends HttpServlet {
         }
         log.debug("User {} logged in", req.getRemoteUser());
         try {
-            permissionValidationService.validateForGlobal(Permission.SYS_ADMIN);
+            permissionValidationService.validateForRepository(repo, Permission.REPO_ADMIN);
         } catch (AuthorisationException notAdminException) {
-            log.warn("User {} is not a system administrator", req.getRemoteUser());
+            log.warn("User {} is not a repo administrator for {}", req.getRemoteUser(), repo.getName());
             res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You do not have permission to access this page.");
             return;
         }
@@ -120,8 +120,9 @@ public class DisapproveConfigurationServlet extends HttpServlet {
         try {
             permissionValidationService.validateForRepository(repo, Permission.REPO_ADMIN);
         } catch (AuthorisationException e) {
+            log.warn("User {} is not a repo administrator for {}", req.getRemoteUser(), repo.getName());
             // Skip form processing and surface error
-            res.sendRedirect(req.getRequestURL().toString() + "?error=" + e.getMessage());
+            res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You do not have permission to access this page.");
             return;
         }
 
