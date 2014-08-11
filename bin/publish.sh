@@ -30,7 +30,7 @@ if [ "$pub_url" == "" -o "$user" == "" -o "$pass" == "" ]; then
   exit 2
 fi
 
-file=`ls target/stashbot-*.jar | sed -e 's/target\///'`
+file=`ls target/stash-disapprove-plugin-*.jar | sed -e 's/target\///'`
 
 if [ ! -f "target/$file" ]; then
   echo "Artifact not found: $file"
