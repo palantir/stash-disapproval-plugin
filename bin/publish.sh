@@ -30,7 +30,7 @@ if [ "$pub_url" == "" -o "$user" == "" -o "$pass" == "" ]; then
   exit 2
 fi
 
-file=`ls target/stash-disapprove-plugin-*.jar | sed -e 's/target\///'`
+file=`ls target/stash-disapproval*.jar | sed -e 's/target\///'`
 
 if [ ! -f "target/$file" ]; then
   echo "Artifact not found: $file"
@@ -45,5 +45,14 @@ curl -XPUT -L                    \
      -H "X-Checksum-Md5: $md5"   \
      -u "$user:$pass"            \
       --data-binary @"target/${file}"   \
-     "${pub_url}/${deploy_path}/stash-disapprove-plugin-${version}.jar"
+      "${pub_url}/${deploy_path}/${file}"
+
+# publish to releases artifactory server if we are on an exact tag
+if [ $(git describe --exact-match) ]; then
+    echo "Detected official release, publishing"
+    ./bin/publishRelease.sh target/${file} pt-releases/atlassian/stash-disapproval/${version}/stash-disapproval.jar
+else
+    echo "Not a release, not publishing"
+fi
+
 
