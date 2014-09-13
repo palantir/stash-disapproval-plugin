@@ -49,6 +49,10 @@ public class PullRequestMetadataDefucker {
     public void listenToPullRequestEvents(PullRequestEvent pre) {
         PullRequest pr = pre.getPullRequest();
         Repository repo = pr.getToRef().getRepository();
+        if (pr.getId() == null) {
+            log.debug("Got NULL PR_ID, ignoring until PR is fully materialized");
+            return;
+        }
         try {
             log.trace("Ensuring DisapprovalConfiguration exists for REPO " + repo.getId());
             cpm.getDisapprovalConfiguration(repo);
