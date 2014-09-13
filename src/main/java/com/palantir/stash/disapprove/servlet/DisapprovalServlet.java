@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.stash.exception.AuthorisationException;
+import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
@@ -50,16 +51,19 @@ public class DisapprovalServlet extends HttpServlet {
     private final PullRequestService pullRequestService;
     private final PersistenceManager pm;
     private final RequestManager rm;
+    private final NavBuilder nb;
     private final Logger log;
 
     public DisapprovalServlet(LoginUriProvider lup, PermissionValidationService permissionValidationService,
-        PullRequestService pullRequestService, PersistenceManager pm, RequestManager rm, PluginLoggerFactory lf) {
+        PullRequestService pullRequestService, PersistenceManager pm, RequestManager rm, NavBuilder nb,
+        PluginLoggerFactory lf) {
         this.permissionValidationService = permissionValidationService;
         this.log = lf.getLoggerForThis(this);
         this.lup = lup;
         this.pm = pm;
         this.pullRequestService = pullRequestService;
         this.rm = rm;
+        this.nb = nb;
     }
 
     @Override
@@ -244,12 +248,17 @@ public class DisapprovalServlet extends HttpServlet {
     }
 
     private String getCommentTextDisapproval(String user) {
-        final String HTML = "<font color=\"#AA0000\">ಠ_ಠ</font> Pull request disapproved";
-        return HTML.replace("__USER__", user);
+        //final String HTML = "<span style=\"color: #AA0000;\">ಠ_ಠ</span> Pull request disapproved";
+        final String disapprovalFace =
+            nb.buildAbsolute() + "/plugins/servlet/disapproval/static-content/disapprovalface.png";
+        final String IMAGE = "![ಠ_ಠ](" + disapprovalFace + ") Pull request disapproved";
+        return IMAGE.replace("__USER__", user);
     }
 
     private String getCommentTextRemoveDisapproval(String user) {
-        final String HTML = "<font color=\"#00AA00\">( ͡° ͜ʖ ͡°)</font> Pull request disapproval removed";
-        return HTML.replace("__USER__", user);
+        final String undisapprovalface =
+            nb.buildAbsolute() + "/plugins/servlet/disapproval/static-content/undisapprovalface.png";
+        final String IMAGE = "![( ͡° ͜ʖ ͡°)](" + undisapprovalface + ") Pull request disapproval removed";
+        return IMAGE.replace("__USER__", user);
     }
 }

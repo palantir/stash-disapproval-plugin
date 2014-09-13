@@ -136,6 +136,9 @@
         <styleClass>undisapprove-pull-request</styleClass>
     </web-item>
 
+    <servlet key="staticContentServlet" name="staticContentServlet" class="com.palantir.stash.disapprove.servlet.StaticContentServlet">
+        <url-pattern>/disapproval/static-content/*</url-pattern>
+    </servlet>
 
     <servlet key="repositoryConfigurationAdmin" name="Disapproval Repository Administration Servlet" class="com.palantir.stash.disapprove.config.DisapproveConfigurationServlet">
         <url-pattern>/disapproval/repo-admin/*</url-pattern>
