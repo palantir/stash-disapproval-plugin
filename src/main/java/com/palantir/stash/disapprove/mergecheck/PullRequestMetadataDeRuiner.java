@@ -30,12 +30,12 @@ import com.palantir.stash.disapprove.persistence.PersistenceManager;
  * @author cmyers
  * 
  */
-public class PullRequestMetadataDefucker {
+public class PullRequestMetadataDeRuiner {
 
     private final PersistenceManager cpm;
     private final Logger log;
 
-    public PullRequestMetadataDefucker(PersistenceManager cpm, PluginLoggerFactory lf) {
+    public PullRequestMetadataDeRuiner(PersistenceManager cpm, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.log = lf.getLoggerForThis(this);
     }

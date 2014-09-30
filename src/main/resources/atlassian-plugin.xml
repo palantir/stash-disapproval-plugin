@@ -47,7 +47,7 @@
     <!-- publish our component -->
     <component key="persistenceManager" class="com.palantir.stash.disapprove.persistence.PersistenceManager" />
     <component key="pluginLoggerFactory" class="com.palantir.stash.disapprove.logger.PluginLoggerFactory" />
-    <component key="pullRequestListener" class="com.palantir.stash.disapprove.mergecheck.PullRequestMetadataDefucker" />
+    <component key="pullRequestListener" class="com.palantir.stash.disapprove.mergecheck.PullRequestMetadataDeRuiner" />
 
     <!-- merge check -->
     <merge-check key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.disapprove.mergecheck.PullRequestDisapprovalMergeCheck" />
