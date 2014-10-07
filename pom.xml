@@ -10,12 +10,12 @@
     <version>0.9.1</version>
 
     <organization>
-        <name>Example Company</name>
-        <url>http://www.example.com/</url>
+        <name>Palantir Technologies</name>
+        <url>http://www.palantir.com/</url>
     </organization>
 
     <name>stash-disapprove-plugin</name>
-    <description>This is the com.palantir.stash:stash-disapprove-plugin plugin for Atlassian Stash.</description>
+    <description>This is the Disapproval Plugin for Atlassian Stash.  It lets you "nack" a pull request so it will not be merged before you are ready.</description>
     <packaging>atlassian-plugin</packaging>
 
     <dependencyManagement>
