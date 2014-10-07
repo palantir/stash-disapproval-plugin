@@ -1,4 +1,4 @@
-// Copyright 2013 Palantir Technologies
+// Copyright 2014 Palantir Technologies
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@ import com.palantir.stash.disapprove.persistence.PersistenceManager;
  * @author cmyers
  * 
  */
-public class PullRequestMetadataDefucker {
+public class PullRequestMetadataDeRuiner {
 
     private final PersistenceManager cpm;
     private final Logger log;
 
-    public PullRequestMetadataDefucker(PersistenceManager cpm, PluginLoggerFactory lf) {
+    public PullRequestMetadataDeRuiner(PersistenceManager cpm, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.log = lf.getLoggerForThis(this);
     }
