@@ -47,14 +47,14 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
 					
 		        	disapprovalHtml = "";
 		        	data = compiledData[prId.toString()]
+		        	disapprovalDiv = $("<div class=\"disapproval\" style=\"color: #AA0000\"></div>")
 		        	if (data.disapproval) {
 		        		console.log("Pull Request is Disapproved by " + data.disapprovedBy)
-						disapprovalHtml = "<td class=\"reviewers\"><font color=\"#AA0000\">ಠ_ಠ</font></td>"
+		        	disapprovalDiv.text("ಠ_ಠ")
 		        	} else {
-						disapprovalHtml = "<td class=\"reviewers\"></td>"
 		        		console.log("Pull Request NOT Disapproved")
 		        	}
-					reviewers.before(disapprovalHtml)
+					reviewers.before($("<td class=\"disapproval\"></td>").html(disapprovalDiv))
 				})
 			})
 						
@@ -64,7 +64,7 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
 				tableHead.each(function() {
 					$(this).find('tr').each(function() {
 						reviewers = $(this).children('.reviewers')
-						reviewers.before('<th class="reviewers">Disapproval</th>')
+						reviewers.before('<th class="disapproval">Disapproval</th>')
 					})
 				})
 			}
