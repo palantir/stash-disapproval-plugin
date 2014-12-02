@@ -49,7 +49,8 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
           disapprovalDiv = $("<div class=\"disapproval\" style=\"color: #AA0000\"></div>")
           if (data.disapproval) {
             console.log("Pull Request is Disapproved by " + data.disapprovedBy)
-            disapprovalDiv.text("ಠ_ಠ")
+            disapprovalDiv.html($("<img></img>").attr("src",baseUrl + "/disapproval/static-content/disapprovalface-trim.png")
+                                                .css("max-height", "24px"))
           } else {
             console.log("Pull Request NOT Disapproved")
           }
