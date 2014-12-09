@@ -1,9 +1,5 @@
 require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, $) {
 
-  /************
-      BEGIN DISAPPROVAL PLUGIN
-  *************/
-
   var prTotal = 0;
   var intervalNumber = 0;
   var baseUrl = undefined;
@@ -25,6 +21,14 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
     Apply the disapproval information to a pull request row
    */
   function doDisapproval (row) {
+    // Add a disapproval cell first
+    // We make it invisible because we don't actually know yet if we are enabled
+    if (row.find("td.disapproval").size() === 0) {
+      row.find("td.reviewers").before($("<td class=\"disapproval\"></td>").attr("style","display:none;"))
+    } else {
+      return // Somehow we got here again?
+    }
+
     var prId = row.attr("data-pullrequestid");
     $.getJSON (baseUrl + "/disapproval/disapprove/" + repoId + "/" + prId, function(data) {
       if (!data.enabledForRepo) {
@@ -40,12 +44,8 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
         console.log("Pull Request " + prId + " NOT Disapproved")
       }
 
-      // Corner case of duplicate td's being inserted
-      if (row.find("td.disapproval").size() === 0) {
-        row.find("td.reviewers").before($("<td class=\"disapproval\"></td>").html(disapprovalDiv))
-      } else {
-        row.find("td.disapproval").html(disapprovalDiv)
-      }
+      // Add the info and make the cell visible
+      row.find("td.disapproval").html(disapprovalDiv).removeAttr("style")
 
       if ($("table#pull-requests-table thead tr").find("th.disapproval").size() === 0) {
         $("table#pull-requests-table thead tr").find("th.reviewers").before($("<th class=\"disapproval\">Disapproval</th>"))
