@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.palantir.stash</groupId>
     <artifactId>stash-disapprove-plugin</artifactId>
-    <version>0.9.1</version>
+    <version>0.9.2</version>
 
     <organization>
         <name>Palantir Technologies</name>
