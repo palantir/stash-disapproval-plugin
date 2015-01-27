@@ -36,6 +36,16 @@ Doing these 4 things will ensure you do not introduce unneccessary whitespace ch
 
 NOTE: Please ensure you add a LICENSE block to the top of each newly added file.
 
+## Dev/Release Workflow
+
+This project uses versions determined by `git describe --dirty='-dirty' --abbrev=12`, and thus versions are of the form 1.2.3-N-gX where N is the number of commits since that tag and X is the exact 12-character prefix of the sha1 the version was built from.
+
+If you build using `./build/invoke-sdk.sh`, the version will be set automatically.  Alternatively, you can set the DOMAIN_VERSION environemnt variable when invoking maven directly to override the version.
+
+This is important because Atlassian plugins use OSGi and their version strings *must* be of the form "^\d+\.\d+\.\d+.*", so in order for jars that actually work to be produced, the tag must be a number such as "1.0.0".  For that reason, feature branches will start "features/", and be merged into "master", which will occasionally be tagged for releases.
+
+Not every released version will necessarily be put on the Atlassian Marketplace, but every released version should be stable (i.e. pass all unit tests, and be reasonably functional).
+
 ## Test Plan
 
 Currently there are no integration tests.  After major changes, the following tests should be performed manually:

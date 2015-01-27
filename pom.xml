@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.palantir.stash</groupId>
     <artifactId>stash-disapprove-plugin</artifactId>
-    <version>0.9.3</version>
+    <version>${domainVersion}</version>
 
     <organization>
         <name>Palantir Technologies</name>
@@ -211,4 +211,30 @@
         <google.guava.libversion>10.0.1</google.guava.libversion>
     </properties>
     
+    <profiles>
+        <profile>
+            <id>gitversion</id>
+
+            <properties>
+                <domainVersion>${env.DOMAIN_VERSION}</domainVersion>
+            </properties>
+            <activation>
+                <property>
+                    <name>env.DOMAIN_VERSION</name>
+                </property>
+            </activation>
+        </profile>
+        <profile>
+            <id>defaultversion</id>
+
+            <properties>
+                <domainVersion>0.0.1-DEV</domainVersion>
+            </properties>
+            <activation>
+                <property>
+                    <name>!env.DOMAIN_VERSION</name>
+                </property>
+            </activation>
+        </profile>
+    </profiles>
 </project>
