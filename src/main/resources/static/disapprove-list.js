@@ -3,12 +3,13 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
   var intervalNumber = 0;
   var baseUrl = undefined;
   var repoId = undefined;
+  var prRestBaseUrl = undefined;
 
   /*
     Extract query information from the page's URL
    */
   function getUrlParam (name) {
-    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href)
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
     if (results == null) {
       return null
     } else {
@@ -25,7 +26,7 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
     if (row.find("td.disapproval").size() === 0) {
       row.find("td.reviewers").before($("<td class=\"disapproval\"></td>").attr("style","display:none;"))
     } else {
-      return // Somehow we got here again?
+      return; // Somehow we got here again?
     }
 
     var prId = row.attr("data-pullrequestid");
@@ -34,17 +35,17 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
         return;
       }
 
-      disapprovalDiv = $("<div class=\"disapproval\"></div>")
+      var disapprovalDiv = $("<div class=\"disapproval\"></div>");
       if (data.disapproval) {
-        console.log("Pull Request " + prId + " is Disapproved by " + data.disapprovedBy)
-        disapprovalDiv.html($("<img></img>").attr("src", baseUrl + "/disapproval/static-content/disapprovalface-trim.png")
-                                            .css("max-height", "24px"))
+        console.log("Pull Request " + prId + " is Disapproved by " + data.disapprovedBy);
+        disapprovalDiv.html($("<img/>").attr("src", baseUrl + "/disapproval/static-content/disapprovalface-trim.png")
+                                            .css("max-height", "24px"));
       } else {
         console.log("Pull Request " + prId + " NOT Disapproved")
       }
 
       // Add the info and make the cell visible
-      row.find("td.disapproval").html(disapprovalDiv).removeAttr("style")
+      row.find("td.disapproval").html(disapprovalDiv).removeAttr("style");
 
       if ($("table#pull-requests-table thead tr").find("th.disapproval").size() === 0) {
         $("table#pull-requests-table thead tr").find("th.reviewers").before($("<th class=\"disapproval\">Disapproval</th>"))
@@ -56,15 +57,15 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
     Scan for new rows without the disapprovals set up
    */
   function doNewDisapprovals () {
-    var prRows = $("table#pull-requests-table tbody tr.pull-request-row")
+    var prRows = $("table#pull-requests-table tbody tr.pull-request-row");
     var foundPrs = false;
-    prRows.each(function (rowIndex) {
+    prRows.each(function () {
       if ($(this).find("td.disapproval").size() === 0) {
         foundPrs = true;
         doDisapproval($(this))
       }
     });
-    console.log("We've done " + prRows.size() + " PR disapprovals so far.")
+    console.log("We've done " + prRows.size() + " PR disapprovals so far.");
 
     if (foundPrs) {
       // We've at least loaded some more, check again before rescheduling
@@ -101,23 +102,23 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
   // Decided to do with jquery, to avoid messing up the window.onload
   $(document).ready(function() {
 
-    baseUrl = nav.pluginServlets().build()
+    baseUrl = nav.pluginServlets().build();
     repoId = state.getRepository().id;
 
     // Make sure we're querying for the right kind of PRs
-    var prState = getUrlParam("state")
+    var prState = getUrlParam("state");
     if (prState == null) {
       prState = "open"
     }
-    prRestBaseUrl = nav.rest().currentRepo().allPullRequests().build() + "?limit=1&state=" + prState
+    prRestBaseUrl = nav.rest().currentRepo().allPullRequests().build() + "?limit=1&state=" + prState;
 
     // Apply to the already loaded rows
-    $("tr.pull-request-row").each(function (rowIndex) {
+    $("tr.pull-request-row").each(function () {
       doDisapproval($(this));
     });
     checkMorePrs();
   });
 
 
-})
+});
 
