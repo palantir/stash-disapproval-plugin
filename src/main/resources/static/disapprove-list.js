@@ -1,6 +1,5 @@
 require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, $) {
 
-  var prTotal = 0;
   var intervalNumber = 0;
   var baseUrl = undefined;
   var repoId = undefined;
@@ -58,21 +57,44 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
    */
   function doNewDisapprovals () {
     var prRows = $("table#pull-requests-table tbody tr.pull-request-row")
+    var foundPrs = false;
     prRows.each(function (rowIndex) {
       if ($(this).find("td.disapproval").size() === 0) {
+        foundPrs = true;
         doDisapproval($(this))
       }
     });
     console.log("We've done " + prRows.size() + " PR disapprovals so far.")
 
-    // We've loaded the same # of PRs we know about, let's stop the interval
-    if (prRows.size() >= prTotal) {
-      clearInterval(intervalNumber)
-      intervalNumber = 0;
+    if (foundPrs) {
+      // We've at least loaded some more, check again before rescheduling
+      stopDisapprovalTask();
+      checkMorePrs();
     }
   }
 
+  function checkMorePrs() {
+    var count = $("tr.pull-request-row").length;
+    $.ajax({
+      url: prRestBaseUrl + "&start=" + count,
+      dataType: 'json'
+    }).then(function (data) {
+      if (data.size > 0) {
+        scheduleDisapprovalTask();
+      } else {
+        console.log("We've done all PRs. Have a nice day.");
+      }
+    });
+  }
 
+  function scheduleDisapprovalTask() {
+    intervalNumber = setInterval(doNewDisapprovals, 750);
+  }
+
+  function stopDisapprovalTask() {
+    clearInterval(intervalNumber)
+    intervalNumber = 0;
+  }
 
 
   // http://stackoverflow.com/questions/6285491/are-there-universal-alternatives-to-window-onload-without-using-frameworks
@@ -87,34 +109,14 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
     if (prState == null) {
       prState = "open"
     }
-    prRestBaseUrl = nav.rest().currentRepo().allPullRequests().build() + "?limit=100&state=" + prState
-
-    // The rest api for pull requests won't let me get everything at once
-    var allPRsCounted = false
-    while (!allPRsCounted) {
-      $.ajax({ url: prRestBaseUrl + "&start=" + prTotal,
-               dataType:'json',
-               async: false,
-               success: function (data) {
-                 prTotal += data.size;
-                 if (data.isLastPage) {
-                   allPRsCounted = true
-                 }
-               }
-      });
-    }
-    console.log("There are " + prTotal + " total PRs")
+    prRestBaseUrl = nav.rest().currentRepo().allPullRequests().build() + "?limit=1&state=" + prState
 
     // Apply to the already loaded rows
     $("tr.pull-request-row").each(function (rowIndex) {
       doDisapproval($(this));
     });
-
-    if (prTotal > 25) {
-      intervalNumber = setInterval(doNewDisapprovals, 750);
-    }
-
-  })
+    checkMorePrs();
+  });
 
 
 })
