@@ -1,6 +1,5 @@
 require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, $) {
 
-  var intervalNumber = 0;
   var baseUrl = undefined;
   var repoId = undefined;
   var prRestBaseUrl = undefined;
@@ -69,8 +68,10 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
 
     if (foundPrs) {
       // We've at least loaded some more, check again before rescheduling
-      stopDisapprovalTask();
       checkMorePrs();
+    } else {
+      // Reschedule self to run again
+      scheduleDisapprovalTask();
     }
   }
 
@@ -81,7 +82,7 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
       dataType: 'json'
     }).then(function (data) {
       if (data.size > 0) {
-        scheduleDisapprovalTask();
+        doNewDisapprovals();
       } else {
         console.log("We've done all PRs. Have a nice day.");
       }
@@ -89,12 +90,7 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
   }
 
   function scheduleDisapprovalTask() {
-    intervalNumber = setInterval(doNewDisapprovals, 750);
-  }
-
-  function stopDisapprovalTask() {
-    clearInterval(intervalNumber)
-    intervalNumber = 0;
+    setTimeout(doNewDisapprovals, 750);
   }
 
 
