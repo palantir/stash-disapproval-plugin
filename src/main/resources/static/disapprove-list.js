@@ -55,7 +55,7 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
   /*
     Scan for new rows without the disapprovals set up
    */
-  function doNewDisapprovals () {
+  function doNewDisapprovals (forceFetch) {
     var prRows = $("table#pull-requests-table tbody tr.pull-request-row");
     var foundPrs = false;
     prRows.each(function () {
@@ -66,7 +66,7 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
     });
     console.log("We've done " + prRows.size() + " PR disapprovals so far.");
 
-    if (foundPrs) {
+    if (foundPrs || forceFetch) {
       // We've at least loaded some more, check again before rescheduling
       checkMorePrs();
     } else {
@@ -82,7 +82,7 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
       dataType: 'json'
     }).then(function (data) {
       if (data.size > 0) {
-        doNewDisapprovals();
+        doNewDisapprovals(false);
       } else {
         console.log("We've done all PRs. Have a nice day.");
       }
@@ -105,7 +105,7 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
     prRestBaseUrl = nav.rest().currentRepo().allPullRequests().build() + "?limit=1&state=" + prState;
 
     // Begin disapproval check loop
-    doNewDisapprovals();
+    doNewDisapprovals(true);
   });
 
 
