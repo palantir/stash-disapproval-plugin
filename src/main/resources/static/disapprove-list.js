@@ -71,7 +71,7 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
       checkMorePrs();
     } else {
       // Reschedule self to run again
-      scheduleDisapprovalTask();
+      setTimeout(doNewDisapprovals, 750);
     }
   }
 
@@ -89,10 +89,6 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
     });
   }
 
-  function scheduleDisapprovalTask() {
-    setTimeout(doNewDisapprovals, 750);
-  }
-
 
   // http://stackoverflow.com/questions/6285491/are-there-universal-alternatives-to-window-onload-without-using-frameworks
   // Decided to do with jquery, to avoid messing up the window.onload
@@ -108,11 +104,8 @@ require(['model/page-state', 'util/navbuilder', 'jquery'], function(state, nav, 
     }
     prRestBaseUrl = nav.rest().currentRepo().allPullRequests().build() + "?limit=1&state=" + prState;
 
-    // Apply to the already loaded rows
-    $("tr.pull-request-row").each(function () {
-      doDisapproval($(this));
-    });
-    checkMorePrs();
+    // Begin disapproval check loop
+    doNewDisapprovals();
   });
 
 
