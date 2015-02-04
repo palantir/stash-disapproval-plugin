@@ -12,3 +12,8 @@ target/*
 .sdk/
 .sdk.tar.gz
 .DS_Store
+
+# Intellij
+.idea
+*.iml
+*.eml
